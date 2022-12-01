@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAIN" Id="{164444d6-dc1c-48fd-943a-893b40b086d6}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	hr				: HRESULT; //each camera will need a individual HRESULT variable
+	fbCamera		: FB_VN_FileSourceControl;
+//this variable links the plc to our vision node// can be either FB_VN_GevCameraControl or "  "_FileSourceControl
+	eState			: ETcVnCameraState; //Takes current state of the camera
+	
+	ipImageIn		: ITcVnImage; //Raw Image data and meta data. can't be seen by humans
+	ipImageInDisp	: ITcVnDisplayableImage; //Converts raw data and meta data to something displayable which can be used in an HMI
+	ipImageWork		: ITcVnImage;
+	ipImageResult	: ITcVnImage;
+	ipImageResultDisp	: ITcVnDisplayableImage;
+	
+	ipImageColorMap_Red: ITcVnImage;
+	ipImageColorMap_Red2: ITcVnImage;
+	
+	ipImageColorMapDisp_Red2: ITcVnDisplayableImage;
+	
+	ipImageColorMap_Red3: ITcVnImage;
+	ipImageColorMapDisp_Red3: ITcVnDisplayableImage;
+	// lower mask
+	aColorLow_Red	: TcVnVector4_LREAL := [0,50,50];
+	aColorUpper_Red	: TcVnVector4_LREAL := [10,255,255];
+	// upper mask
+	aColorLow_Red2	: TcVnVector4_LREAL := [170,50,50];
+	aColorUpper_Red2: TcVnVector4_LREAL := [180,255,255];
+	
+	ipImageOnlyStawberry: ITcVnImage;
+	
+	ipContourList	: ITcVnContainer;
+	ipIterator		: ITcVnForwardIterator;
+	ipContour		: ITcVnContainer;
+	
+	aColor_RED		: TcVnVector4_LREAL:= [255,0,0];
+	
+	// My own code
+	ColourConverter : FB_ConvertColourSpace;
+	
+	
+	fElement     : REAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE eState OF
+	//-------------------------------------------------------------------------------------------------------
+	TCVN_CS_INITIAL, TCVN_CS_OPENING, TCVN_CS_OPENED, TCVN_CS_STARTACQUISITION:
+		hr := fbCamera.StartAcquisition();
+	//-------------------------------------------------------------------------------------------------------
+	TCVN_CS_ERROR:
+		hr := fbCamera.Reset();
+//-------------------------------------------------------------------------------------------------------
+	TCVN_CS_ACQUIRING:
+		hr := fbCamera.StartAcquisition();
+	//---------------------------------------------------------------------------------------------------------
+	TCVN_CS_ACQUIRING:
+		hr := fbCamera.GetCurrentImage(ipImageIN);
+		IF SUCCEEDED(hr) AND ipImageIn <> 0 THEN
+			//
+		hr := F_VN_CopyImage(ipImageIn, ipImageResult,hr);
+		hr := F_VN_CopyIntoDisplayableImage(ipImageIn, ipImageInDisp, hr);
+		// blur image
+		hr := F_VN_GaussianFilter(ipImageIn,ipImageWork,51,51,hr);
+		//------------------------------------------------------------------------------------------------------
+		// convert RGB space to HSV
+		hr := F_VN_ConvertColorSpace(ipImageWork, ipImageWork, TCVN_CST_RGB_TO_HSV, hr);
+		//ColourConverter(hr_internal:=hr, ipImageIn := ipImageIn, ColourSpaceType:='GRAY', ipImageOut=>ipImageWork);
+		//ColourConverter(); this is only need if i don't do the code above
+		
+		//hr := F_VN_CopyIntoDisplayableImage(ipImageWork,ipImageColorMapDisp_Red2,hr);
+		//------------------------------------------------------------------------------------------------------
+		//Creating first mask
+		hr := F_VN_CheckColorRange(ipImageWork, ipImageColorMap_Red,aColorLow_Red,aColorUpper_Red,hr);
+		//creating second mask
+		hr := F_VN_CheckColorRange(ipImageWork, ipImageColorMap_Red2,aColorLow_Red2,aColorUpper_Red2,hr);
+		//Adding masks together
+		hr := F_VN_BitwiseOrImages(ipImageColorMap_Red,ipImageColorMap_Red2,ipImageColorMap_Red3,hr);
+		//I think the reason why F_VN_BitwiseAndImages didn't work on the coloured image 
+		//is because the colour is an array while the mask is a single bit
+		//-----------------------------------------------------------------------------------------------
+		hr := F_VN_ConvertColorSpace(ipImageIn, ipImageWork, TCVN_CST_RGB_TO_GRAY, hr);
+		hr := F_VN_GaussianFilter(ipImageWork,ipImageWork,51,51,hr);
+		hr := F_VN_CopyIntoDisplayableImage(ipImageWork,ipImageColorMapDisp_Red2,hr);
+		hr := F_VN_BitwiseAndImages(ipImageColorMap_Red3,ipImageWork,ipImageOnlyStawberry,hr);
+		
+		hr := F_VN_CannyEdgeDetection(ipImageOnlyStawberry,ipImageOnlyStawberry,10,200,hr);
+		
+		hr := F_VN_CopyIntoDisplayableImage(ipImageOnlyStawberry,ipImageColorMapDisp_Red3,hr);
+		hr := F_VN_FindContours(ipImageOnlyStawberry,ipContourList,hr);
+		hr := F_VN_GetAt_REAL(ipContourList, fElement, 0, hr);
+		
+		
+		hr := F_VN_GetForwardIterator(ipContourList, ipIterator, hr);
+		
+		WHILE SUCCEEDED(hr) AND_THEN ipIterator.CheckIfEnd() <> S_OK DO
+			hr := F_VN_GetContainer(ipIterator, ipContour,hr);
+			hr := F_VN_IncrementIterator(ipIterator,hr);
+			//ADSLOGSTR(msgCtrlMask := ADSLOG_MSGTYPE_ERROR OR ADSLOG_MSGTYPE_LOG,
+			//msgFmtStr := 'Container %s',
+			//strArg := ipContour);
+			hr := F_VN_DrawContours(ipContour, -1, ipImageResult, aColor_RED, 3,hr);
+		END_WHILE
+		
+		hr := F_VN_CopyIntoDisplayableImage(ipImageResult,ipImageResultDisp,hr);
+		END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="13" Count="3" />
+      <LineId Id="21" Count="2" />
+      <LineId Id="25" Count="6" />
+      <LineId Id="86" Count="44" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

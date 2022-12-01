@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="F_GetOrientationST" Id="{b2a17eef-20b7-4953-af58-15c2e2d33448}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_GetOrientationST : BOOL
+VAR_INPUT
+	SrcContour		: ITcVnContainer;
+    ipDestImage : Reference To  ITcVnImage;
+    eTransform  : ETcVnColorSpaceTransform;
+    hrPrev      : HRESULT;
+END_VAR
+VAR
+	size : ULINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[size := SrcContour.GetElementNum;
+//getElementNum is # of elements
+//getElementSize is byte size
+for ]]></ST>
+    </Implementation>
+    <LineIds Name="F_GetOrientationST">
+      <LineId Id="7" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

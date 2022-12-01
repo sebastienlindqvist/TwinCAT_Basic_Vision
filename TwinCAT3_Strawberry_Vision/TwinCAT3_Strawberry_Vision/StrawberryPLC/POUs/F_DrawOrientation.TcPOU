@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="F_DrawOrientation" Id="{bd828471-7398-4d25-a4e8-8b31d8284100}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_DrawOrientation : HRESULT
+VAR_INPUT
+    ipSrcImage  : ITcVnImage;
+    ipDestImage : Reference To  ITcVnImage;
+    eTransform  : ETcVnColorSpaceTransform;
+    hrPrev      : HRESULT;
+END_VAR
+VAR
+	ipContourList	: ITcVnContainer;
+	ipIterator		: ITcVnForwardIterator;
+	ipContour		: ITcVnContainer;
+	
+	fArea                 :    LREAL;
+	fAreaMin              :    LREAL := 100;
+	fAreaMax              :    LREAL := 100000;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[hrPrev := F_VN_FindContours(ipSrcImage,ipContourList,hrPrev);
+hrPrev := F_VN_GetForwardIterator(ipContourList, ipIterator, hrPrev);
+
+WHILE SUCCEEDED(hrPrev) AND_THEN ipIterator.CheckIfEnd() <> S_OK DO
+	hrPrev := F_VN_GetContainer(ipIterator, ipContour,hrPrev);
+	hrPrev := F_VN_IncrementIterator(ipIterator,hrPrev);
+	
+	// Filter by Area
+    hrPrev := F_VN_ContourArea(ipContour, fArea, hrPrev);
+	
+	IF fArea > fAreaMin AND fArea < fAreaMax THEN
+		hrPrev := F_GetOrientationST(
+	END_IF
+END_WHILE]]></ST>
+    </Implementation>
+    <LineIds Name="F_DrawOrientation">
+      <LineId Id="7" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="25" Count="1" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="30" Count="4" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

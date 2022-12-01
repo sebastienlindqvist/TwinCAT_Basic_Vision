@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="F_ConvertColorSpaceST" Id="{8afd784b-63f5-4640-a6cd-39ebc87076aa}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_ConvertColorSpaceST
+VAR_INPUT
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="F_ConvertColorSpaceST">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

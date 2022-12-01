@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_ConvertColourSpace" Id="{d94bcad0-66b2-4a3a-8115-2088d66c5adb}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ConvertColourSpace
+VAR_INPUT
+	hr_internal			: HRESULT; 
+	ipImageIn		: ITcVnImage; //Only takes RGB
+	ColourSpaceType	:STRING; // Only HSV or GRAY for now
+END_VAR
+VAR_OUTPUT
+	ipImageOut		: ITcVnImage;
+END_VAR
+VAR
+	GRAY	:STRING := 'GRAY';
+	HSV		:STRING := 'HSV';
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF ColourSpaceType = 'GRAY' THEN
+	hr_internal	:= F_VN_ConvertColorSpace(ipImageIn, ipImageOut, TCVN_CST_RGB_TO_GRAY, hr_internal	);
+ELSIF ColourSpaceType = 'HSV' THEN
+	hr_internal	 := F_VN_ConvertColorSpace(ipImageIn, ipImageOut, TCVN_CST_RGB_TO_HSV, hr_internal	);
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="FB_ConvertColourSpace">
+      <LineId Id="9" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="27" Count="1" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
