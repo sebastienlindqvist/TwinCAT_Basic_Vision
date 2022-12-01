@@ -51,9 +51,6 @@ END_VAR
 	//-------------------------------------------------------------------------------------------------------
 	TCVN_CS_ERROR:
 		hr := fbCamera.Reset();
-//-------------------------------------------------------------------------------------------------------
-	TCVN_CS_ACQUIRING:
-		hr := fbCamera.StartAcquisition();
 	//---------------------------------------------------------------------------------------------------------
 	TCVN_CS_ACQUIRING:
 		hr := fbCamera.GetCurrentImage(ipImageIN);
@@ -110,7 +107,7 @@ END_CASE]]></ST>
     <LineIds Name="MAIN">
       <LineId Id="13" Count="3" />
       <LineId Id="21" Count="2" />
-      <LineId Id="25" Count="6" />
+      <LineId Id="28" Count="3" />
       <LineId Id="86" Count="44" />
       <LineId Id="40" Count="0" />
       <LineId Id="47" Count="0" />
